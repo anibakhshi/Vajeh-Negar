@@ -1,0 +1,11 @@
+.stApp{background:radial-gradient(ellipse at 4% 8%,#ffdeb7 0,transparent 35%),radial-gradient(ellipse at 94% 45%,#d6f4fa 0,transparent 40%),#faf7ff}
+.hero{isolation:isolate;position:relative;background:linear-gradient(114deg,#5425bf,#7333c0 51%,#ae285d);border:0;border-radius:28px;padding:2rem 3rem;box-shadow:0 14px 36px #613b8720}
+.hero:before{z-index:-1;right:-6rem;top:-13rem;width:31rem;height:25rem;background:linear-gradient(120deg,#ffb441,#ff6f75);transform:rotate(-24deg);border-radius:42%;box-shadow:0 18px 0 #ee6285,0 35px 0 #b63884}
+.hero:after{content:"";position:absolute;z-index:-1;left:-2rem;bottom:-8rem;width:20rem;height:12rem;transform:rotate(-18deg);border-radius:50%;background:#743fe1}
+.hero h1{position:relative;width:fit-content;background:#512388;padding:.15rem 1rem;border-radius:14px;color:white}
+.credits{max-width:45rem;background:#452376ed;color:white;border-radius:16px;padding:.7rem 1rem}
+.copy{background:#fff3e4;border-color:#c6631c;color:#422f31}.copy.target{background:#e0faf4;border-color:#128276;color:#184c4d}
+[data-testid="stVerticalBlockBorderWrapper"]{background:#ffffffeb;border-radius:20px;box-shadow:0 5px 22px #5138750b}
+button[kind="primary"]{background:#692dd0;color:white;border-color:#692dd0}
+[data-baseweb="tab-list"]{background:#fff9;border-radius:12px;padding:0 .7rem}
+@media(max-width:600px){.hero{padding:1.1rem}.credits div{display:grid;justify-content:start}}
