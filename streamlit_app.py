@@ -19,7 +19,7 @@ from translator import MODEL, VERSIONS, translate
 ROOT = Path(__file__).parent
 st.set_page_config(page_title="واژه‌نگار · VajehNegar", page_icon="📖", layout="wide")
 state = st.session_state
-language = st.sidebar.selectbox("زبان رابط · Interface language", ["فارسی", "English"], key="language")
+language = st.selectbox("زبان رابط · Interface language", ["فارسی", "English"], key="language")
 fa = language == "فارسی"
 
 
@@ -75,7 +75,7 @@ def error(exc):
 
 
 errors = (ConnectionError, httpx.RequestError, ResponseError, ValueError)
-work, lab = st.tabs([t("میز ترجمه","Translator"),t("آزمایشگاه پرامپت","Prompt lab")])
+work, lab, archive = st.tabs([t("میز ترجمه","Translator"),t("آزمایشگاه پرامپت","Prompt lab"),t("اسناد ذخیره‌شده","Saved documents")])
 with work:
     names={"en":t("انگلیسی","English"),"fa":t("فارسی","Persian"),"de":t("آلمانی","German")}
     def reset_job():
@@ -86,7 +86,7 @@ with work:
         if old and len(old["items"])==len(old["parts"]):
             state.input_text="\n\n".join(r.pairs[0][1] for r in old["items"])
         reset_job()
-    with st.sidebar.expander(t("اسناد محلی", "Local documents")):
+    with archive:
         saved=documents.choices()
         def reopen():
             job=documents.load(state.doc_choice)
@@ -104,12 +104,14 @@ with work:
         if saved:
             st.selectbox(t("سند ذخیره‌شده","Saved document"),list(saved),format_func=saved.get,key="doc_choice")
             st.button(t("باز کردن سند","Open document"),on_click=reopen)
+        else:
+            st.info(t("پس از ترجمه، «ذخیرهٔ سند روی این دستگاه» را بزنید تا سند اینجا نمایش داده شود.", "After translating, use Save document on this device to add it here."))
     left,middle,right=st.columns([3,1,3])
     direction=left.selectbox(t("زبان مبدأ","Source language"),list(names),format_func=names.get,key="src",on_change=reset_job)
     target=right.selectbox(t("زبان مقصد","Target language"),list(names),index=1,format_func=names.get,key="dst",on_change=reset_job)
     middle.button("⇄",key="swap_lang",help=t("جابه‌جایی زبان‌ها","Swap languages"),on_click=swap)
     modes={"auto":t("خودکار","Automatic"),"dictionary":t("واژه‌نامه","Dictionary"),"text":t("متن","Text")}
-    mode=st.sidebar.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
+    mode=st.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
     entry="input_text"
     def change_source(value):
         state[entry] = value
@@ -132,14 +134,14 @@ with work:
     st.button(t("تشخیص زبان متن","Detect source language"),on_click=detect_input,disabled=not source.strip())
     if state.get("detected")=="?":
         st.caption(t("زبان را دستی انتخاب کنید.","Select the source language manually."))
-    speech_on=st.sidebar.checkbox(t("فعال‌سازی صوت آنلاین","Enable online audio"),key="speech_on")
+    speech_on=st.checkbox(t("فعال‌سازی صوت آنلاین","Enable online audio"),key="speech_on")
     if speech_on:
         st.caption(t("با زدن دکمهٔ شنیدن، متن انتخاب‌شده برای تولید صدا به Microsoft Edge TTS فرستاده می‌شود.",
                      "Pressing Listen sends the selected text to Microsoft Edge TTS."))
         audio_control(st,t,source,direction,"source-full",t("شنیدن کل متن مبدأ","Listen to full source"))
     if direction==target:
         st.info(t("دو زبان متفاوت انتخاب کنید.","Choose two different languages."))
-    with st.sidebar.expander(t("واژه‌نامهٔ اختصاصی","Custom terminology")):
+    with st.expander(t("واژه‌نامهٔ اختصاصی","Custom terminology")):
         terms = st.text_area(t("هر خط یک معادل، به شکل مبدأ = مقصد","One mapping per line, source = target"),
                              key="terms_"+direction+target,height=90,max_chars=1200)
     if st.button(t("ترجمه کن","Translate"),type="primary",key="translate",disabled=direction==target):
