@@ -1,30 +1,46 @@
-en	Revenue may fall by 12%.	ممکن است درآمد ۱۲ درصد کاهش یابد.	12|۱۲
-en	The meeting was called off.	جلسه لغو شد.	
-en	They sat on the river bank.	آن‌ها کنار رودخانه نشستند.	
-en	Open a bank account.	یک حساب بانکی باز کنید.	
-en	Do not rename report_v2.csv.	نام فایل report_v2.csv را تغییر ندهید.	report_v2.csv
-en	The sample weighed 2.5 kg.	وزن نمونه ۲٫۵ کیلوگرم بود.	2.5|۲٫۵
-en	She used to teach here.	او قبلاً اینجا تدریس می‌کرد.	
-en	Unless it rains, we will walk.	اگر باران نبارد، پیاده می‌رویم.	
-en	The evidence is inconclusive.	شواهد قطعی نیست.	
-en	Please bear with me.	لطفاً کمی صبر کنید.	
-en	Restart API_GATEWAY after deployment.	پس از استقرار، API_GATEWAY را دوباره راه‌اندازی کنید.	API_GATEWAY
-en	At most 15 people may attend.	حداکثر ۱۵ نفر می‌توانند شرکت کنند.	15|۱۵
-en	The result is unlikely to change.	بعید است نتیجه تغییر کند.	
-en	Check https://example.org for updates.	برای اطلاع از به‌روزرسانی‌ها https://example.org را بررسی کنید.	https://example.org
-en	We ran out of time.	وقت کم آوردیم.	
-fa	شیر آب را ببند.	Turn off the tap.	
-fa	احتمال دارد جلسه لغو شود.	The meeting may be canceled.	
-fa	فقط ۳ نفر پاسخ دادند.	Only 3 people responded.	3|three
-fa	نسخهٔ v2.1 هنوز منتشر نشده است.	Version v2.1 has not been released yet.	v2.1
-fa	دست شما درد نکند.	Thank you.	
-fa	او از پس این کار برآمد.	They managed to do it.	
-fa	داده‌ها لزوماً این فرض را تأیید نمی‌کنند.	The data do not necessarily support this assumption.	
-fa	فایل data.json را حذف نکنید.	Do not delete data.json.	data.json
-fa	اگر فرصت شد، خبر می‌دهم.	I will let you know if I get a chance.	
-fa	او کنار ساحل قدم زد.	They walked along the shore.	
-fa	دما به زیر صفر رسید.	The temperature dropped below zero.	
-fa	حداقل ۱۰ نمونه لازم است.	At least 10 samples are needed.	10|ten
-fa	این روش مقرون‌به‌صرفه است.	This method is cost-effective.	
-fa	با این حال، نتیجه قطعی نیست.	However, the result is inconclusive.	
-fa	نام متغیر user_id ثابت بماند.	Keep the variable name user_id unchanged.	user_id
+en	fa	Revenue may fall by 12%.	ممکن است درآمد ۱۲ درصد کاهش یابد.	12|۱۲
+en	fa	The meeting was called off.	جلسه لغو شد.	
+en	fa	They sat on the river bank.	آن‌ها کنار رودخانه نشستند.	
+en	fa	Open a bank account.	یک حساب بانکی باز کنید.	
+en	fa	Do not rename report_v2.csv.	نام فایل report_v2.csv را تغییر ندهید.	report_v2.csv
+en	fa	The sample weighed 2.5 kg.	وزن نمونه ۲٫۵ کیلوگرم بود.	2.5|۲٫۵
+en	fa	She used to teach here.	او قبلاً اینجا تدریس می‌کرد.	
+en	fa	Unless it rains, we will walk.	اگر باران نبارد، پیاده می‌رویم.	
+en	fa	The evidence is inconclusive.	شواهد قطعی نیست.	
+en	fa	Please bear with me.	لطفاً کمی صبر کنید.	
+en	fa	Restart API_GATEWAY after deployment.	پس از استقرار، API_GATEWAY را دوباره راه‌اندازی کنید.	API_GATEWAY
+en	fa	At most 15 people may attend.	حداکثر ۱۵ نفر می‌توانند شرکت کنند.	15|۱۵
+en	fa	The result is unlikely to change.	بعید است نتیجه تغییر کند.	
+en	fa	Check https://example.org for updates.	برای اطلاع از به‌روزرسانی‌ها https://example.org را بررسی کنید.	https://example.org
+en	fa	We ran out of time.	وقت کم آوردیم.	
+fa	en	شیر آب را ببند.	Turn off the tap.	
+fa	en	احتمال دارد جلسه لغو شود.	The meeting may be canceled.	
+fa	en	فقط ۳ نفر پاسخ دادند.	Only 3 people responded.	3|three
+fa	en	نسخهٔ v2.1 هنوز منتشر نشده است.	Version v2.1 has not been released yet.	v2.1
+fa	en	دست شما درد نکند.	Thank you.	
+fa	en	او از پس این کار برآمد.	They managed to do it.	
+fa	en	داده‌ها لزوماً این فرض را تأیید نمی‌کنند.	The data do not necessarily support this assumption.	
+fa	en	فایل data.json را حذف نکنید.	Do not delete data.json.	data.json
+fa	en	اگر فرصت شد، خبر می‌دهم.	I will let you know if I get a chance.	
+fa	en	او کنار ساحل قدم زد.	They walked along the shore.	
+fa	en	دما به زیر صفر رسید.	The temperature dropped below zero.	
+fa	en	حداقل ۱۰ نمونه لازم است.	At least 10 samples are needed.	10|ten
+fa	en	این روش مقرون‌به‌صرفه است.	This method is cost-effective.	
+fa	en	با این حال، نتیجه قطعی نیست.	However, the result is inconclusive.	
+fa	en	نام متغیر user_id ثابت بماند.	Keep the variable name user_id unchanged.	user_id
+en	de	The file report_v2.csv contains 12% of the data.	Die Datei report_v2.csv enthält 12 Prozent der Daten.	report_v2.csv
+de	en	Die Datei report_v2.csv enthält 12 Prozent der Daten.	The file report_v2.csv contains 12% of the data.	report_v2.csv
+fa	de	فایل report_v2.csv شامل ۱۲ درصد داده‌هاست.	Die Datei report_v2.csv enthält 12 Prozent der Daten.	report_v2.csv
+de	fa	Die Datei report_v2.csv enthält 12 Prozent der Daten.	فایل report_v2.csv شامل ۱۲ درصد داده‌هاست.	report_v2.csv
+en	de	Please do not cancel the meeting.	Bitte sagen Sie die Besprechung nicht ab.	
+de	en	Bitte sagen Sie die Besprechung nicht ab.	Please do not cancel the meeting.	
+fa	de	لطفاً جلسه را لغو نکنید.	Bitte sagen Sie die Besprechung nicht ab.	
+de	fa	Bitte sagen Sie die Besprechung nicht ab.	لطفاً جلسه را لغو نکنید.	
+en	de	There are at least 4 layers.	Es gibt mindestens 4 Schichten.	4|۴|four|چهار|vier
+de	en	Es gibt mindestens 4 Schichten.	There are at least 4 layers.	4|۴|four|چهار|vier
+fa	de	حداقل ۴ لایه وجود دارد.	Es gibt mindestens 4 Schichten.	4|۴|four|چهار|vier
+de	fa	Es gibt mindestens 4 Schichten.	حداقل ۴ لایه وجود دارد.	4|۴|four|چهار|vier
+de	fa	Das Gift ist gefährlich.	این سم خطرناک است.	
+en	de	The gift is for you.	Das Geschenk ist für dich.	
+de	fa	Der Umsatz könnte um 12 Prozent sinken.	ممکن است درآمد ۱۲ درصد کاهش یابد.	۱۲|12
+de	en	Der Umsatz wird um 12 Prozent sinken.	Revenue will fall by 12%.	12
