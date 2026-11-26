@@ -19,7 +19,7 @@ from translator import MODEL, VERSIONS, translate
 ROOT = Path(__file__).parent
 st.set_page_config(page_title="واژه‌نگار · VajehNegar", page_icon="📖", layout="wide")
 state = st.session_state
-language = st.selectbox("زبان رابط · Interface language", ["فارسی", "English"], key="language")
+language = st.sidebar.selectbox("زبان رابط · Interface language", ["فارسی", "English"], key="language")
 fa = language == "فارسی"
 
 
@@ -33,23 +33,7 @@ def styles():
     for family, filename in [("NotoFA", "NotoSansArabic-Regular"), ("NotoEN", "NotoSans-Regular")]:
         data = base64.b64encode((ROOT / "assets" / (filename+".ttf")).read_bytes()).decode()
         fonts += f"@font-face{{font-family:{family};src:url(data:font/ttf;base64,{data}) format('truetype')}}"
-    return fonts + """
-.stApp{background:radial-gradient(ellipse at top right,#dde9e3,transparent 48%),#faf7ef}
-.stMainBlockContainer{max-width:75rem;padding-top:2rem}
-.stApp :is(p,textarea,input,label,h1,h2,h3,small,button,.copy,.credits){font-family:NotoEN,NotoFA,sans-serif}
-.hero{border-radius:24px;color:#fff8e9;padding:2rem 2.5rem;position:relative;overflow:hidden;
-background:radial-gradient(circle at 85% 10%,#384d65,transparent 52%),linear-gradient(115deg,#123b3e,#282443);
-border-bottom:4px solid #dcb575;margin:.6rem 0 1rem}
-.hero:before{content:"";position:absolute;width:26rem;height:26rem;right:-14rem;top:-12rem;border-radius:50%;
-box-shadow:0 0 0 1px #ffffff22,0 0 0 22px #ffffff0a,0 0 0 44px #ffffff0a,0 0 0 66px #ffffff09}
-.hero h1{color:#fff8e9;font-size:clamp(2rem,5vw,3.6rem);padding:0}
-.credits{display:grid;gap:.25rem;margin-top:.7rem;position:relative}
-.credits div{display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;justify-content:space-between}
-.copy{white-space:pre-wrap;overflow-wrap:anywhere;line-height:2.1;padding:.85rem 1rem;border-radius:12px;
-background:#f3f0e8;border-inline-start:3px solid #b58f60;color:#203b3a}
-.copy.target{background:#e4f0eb;border-color:#27786b}
-textarea{line-height:1.9!important}
-"""
+    return fonts
 
 
 @st.cache_data
@@ -62,16 +46,19 @@ credit_rows = [
     ("نام دانشجو · آنیتا بخشی", "Student · Anita Bakhshi"),
     ("نام استاد · استاد داریوش تصدیقی", "Instructor · Dariush Tasdighi"),
     ("نام دوره · LLMOPS", "Course · LLMOPS")]
-st.html('<header class="hero"><h1>'+t("واژه‌نگار","VajehNegar")+'</h1><div class="credits">'+
-        "".join(f'<div><span dir="rtl">{p}</span><span dir="ltr">{e}</span></div>' for p,e in credit_rows)
-        +'</div></header>')
+st.html('<header class="hero"><div><h1>'+t("واژه‌نگار","VajehNegar")+'</h1><p>'+
+        t("مترجم و واژه‌نامهٔ فارسی، انگلیسی و آلمانی","Persian, English and German translation studio")+
+        '</p></div><div class="art" aria-hidden="true"><i>A</i><i>آ</i></div></header>')
+with st.sidebar.expander(t("مشخصات پروژه","Project credits")):
+    st.html('<div class="credits">'+ "".join(
+        f'<div><strong dir="rtl">{p}</strong><small dir="ltr">{e}</small></div>' for p,e in credit_rows)+'</div>')
 
 
 def panel(label, value, lang, target=False):
-    st.caption(label)
     direction = "rtl" if lang == "fa" else "ltr"
-    st.html(f'<div class="copy {"target" if target else ""}" lang="{lang}" dir="{direction}" '
-            f'style="text-align:{"right" if lang=="fa" else "left"}">{escape(value)}</div>')
+    st.html(f'<section class="sheet {"output" if target else ""}"><header><b>{escape(label)}</b>'
+            f'<small>{escape(lang.upper())}</small></header><div class="copy" lang="{lang}" dir="{direction}">'
+            f'{escape(value)}</div></section>')
 
 
 def error(exc):
@@ -95,7 +82,7 @@ with work:
         if old and len(old["items"])==len(old["parts"]):
             state.input_text="\n\n".join(r.pairs[0][1] for r in old["items"])
         reset_job()
-    with st.expander(t("اسناد محلی", "Local documents")):
+    with st.sidebar.expander(t("اسناد محلی", "Local documents")):
         saved=documents.choices()
         def reopen():
             job=documents.load(state.doc_choice)
@@ -116,9 +103,9 @@ with work:
     left,middle,right=st.columns([3,1,3])
     direction=left.selectbox(t("زبان مبدأ","Source language"),list(names),format_func=names.get,key="src",on_change=reset_job)
     target=right.selectbox(t("زبان مقصد","Target language"),list(names),index=1,format_func=names.get,key="dst",on_change=reset_job)
-    middle.button("⇄",help=t("جابه‌جایی زبان‌ها","Swap languages"),on_click=swap)
+    middle.button("⇄",key="swap_lang",help=t("جابه‌جایی زبان‌ها","Swap languages"),on_click=swap)
     modes={"auto":t("خودکار","Automatic"),"dictionary":t("واژه‌نامه","Dictionary"),"text":t("متن","Text")}
-    mode=st.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
+    mode=st.sidebar.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
     entry="input_text"
     def change_source(value):
         state[entry] = value
@@ -127,11 +114,11 @@ with work:
                if direction=="en" else "جلسه لغو شد.\nفایل report_v2.csv را نگه دارید.\n\nممکن است درآمد ۱۲ درصد کاهش یابد.")
     if direction=="de":
         example="Die Besprechung wurde abgesagt.\nBitte behalten Sie report_v2.csv.\n\nDer Umsatz könnte um 12 Prozent sinken."
+    st.html("<style>.st-key-"+entry+" textarea{direction:"+("rtl;text-align:right" if direction=="fa" else "ltr;text-align:left")+"}</style>")
+    source = st.text_area(t("متن مبدأ","Source text"),key=entry,height=200,placeholder=t("متن را اینجا وارد کنید…","Type or paste your text here…"))
     a,b=st.columns(2)
     a.button(t("درج نمونه","Load sample"),on_click=change_source,args=(example,))
     b.button(t("پاک کردن","Clear"),on_click=change_source,args=("",))
-    st.html("<style>.st-key-"+entry+" textarea{direction:"+("rtl;text-align:right" if direction=="fa" else "ltr;text-align:left")+"}</style>")
-    source = st.text_area(t("متن مبدأ","Source text"),key=entry,height=180)
     def detect_input():
         guess=suggest(state.input_text)
         if guess:
@@ -141,14 +128,14 @@ with work:
     st.button(t("تشخیص زبان متن","Detect source language"),on_click=detect_input,disabled=not source.strip())
     if state.get("detected")=="?":
         st.caption(t("زبان را دستی انتخاب کنید.","Select the source language manually."))
-    speech_on=st.checkbox(t("فعال‌سازی صوت آنلاین","Enable online audio"),key="speech_on")
+    speech_on=st.sidebar.checkbox(t("فعال‌سازی صوت آنلاین","Enable online audio"),key="speech_on")
     if speech_on:
         st.caption(t("با زدن دکمهٔ شنیدن، متن انتخاب‌شده برای تولید صدا به Microsoft Edge TTS فرستاده می‌شود.",
                      "Pressing Listen sends the selected text to Microsoft Edge TTS."))
         audio_control(st,t,source,direction,"source-full",t("شنیدن کل متن مبدأ","Listen to full source"))
     if direction==target:
         st.info(t("دو زبان متفاوت انتخاب کنید.","Choose two different languages."))
-    with st.expander(t("واژه‌نامهٔ اختصاصی","Custom terminology")):
+    with st.sidebar.expander(t("واژه‌نامهٔ اختصاصی","Custom terminology")):
         terms = st.text_area(t("هر خط یک معادل، به شکل مبدأ = مقصد","One mapping per line, source = target"),
                              key="terms_"+direction+target,height=90,max_chars=1200)
     if st.button(t("ترجمه کن","Translate"),type="primary",key="translate",disabled=direction==target):
