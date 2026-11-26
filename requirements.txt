@@ -2,3 +2,6 @@ streamlit>=1.50,<2
 ollama>=0.6,<1
 python-dotenv>=1,<2
 rich>=13,<16
+
+edge-tts>=7.2,<8
+langdetect==1.0.9

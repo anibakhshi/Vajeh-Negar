@@ -11,6 +11,7 @@ from pathlib import Path
 import httpx
 import streamlit as st
 from ollama import ResponseError
+from speech import audio_control, suggest
 from translator import MODEL, VERSIONS, translate
 
 ROOT = Path(__file__).parent
@@ -83,28 +84,54 @@ def error(exc):
 errors = (ConnectionError, httpx.RequestError, ResponseError, ValueError)
 work, lab = st.tabs([t("میز ترجمه","Translator"),t("آزمایشگاه پرامپت","Prompt lab")])
 with work:
-    col1,col2 = st.columns(2)
-    direction = col1.selectbox(t("جهت ترجمه","Translation direction"), ["en","fa"],
-        format_func=lambda x: {"en":t("انگلیسی به فارسی","English to Persian"),"fa":t("فارسی به انگلیسی","Persian to English")}[x],
-        key="direction", on_change=lambda: state.pop("job",None))
-    target = "fa" if direction=="en" else "en"
-    modes = {"auto":t("خودکار","Automatic"),"dictionary":t("واژه‌نامه","Dictionary"),"text":t("متن","Text")}
-    mode = col2.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
-    entry = "source_"+direction
+    names={"en":t("انگلیسی","English"),"fa":t("فارسی","Persian"),"de":t("آلمانی","German")}
+    def reset_job():
+        state.pop("job",None)
+    def swap():
+        old=state.get("job")
+        state.src,state.dst=state.dst,state.src
+        if old and len(old["items"])==len(old["parts"]):
+            state.input_text="\n\n".join(r.pairs[0][1] for r in old["items"])
+        reset_job()
+    left,middle,right=st.columns([3,1,3])
+    direction=left.selectbox(t("زبان مبدأ","Source language"),list(names),format_func=names.get,key="src",on_change=reset_job)
+    target=right.selectbox(t("زبان مقصد","Target language"),list(names),index=1,format_func=names.get,key="dst",on_change=reset_job)
+    middle.button("⇄",help=t("جابه‌جایی زبان‌ها","Swap languages"),on_click=swap)
+    modes={"auto":t("خودکار","Automatic"),"dictionary":t("واژه‌نامه","Dictionary"),"text":t("متن","Text")}
+    mode=st.selectbox(t("حالت","Mode"),list(modes),format_func=modes.get,key="mode")
+    entry="input_text"
     def change_source(value):
         state[entry] = value
         state.pop("job",None)
     example = ("The meeting was called off.\nPlease keep report_v2.csv.\n\nRevenue may fall by 12%."
                if direction=="en" else "جلسه لغو شد.\nفایل report_v2.csv را نگه دارید.\n\nممکن است درآمد ۱۲ درصد کاهش یابد.")
+    if direction=="de":
+        example="Die Besprechung wurde abgesagt.\nBitte behalten Sie report_v2.csv.\n\nDer Umsatz könnte um 12 Prozent sinken."
     a,b=st.columns(2)
     a.button(t("درج نمونه","Load sample"),on_click=change_source,args=(example,))
     b.button(t("پاک کردن","Clear"),on_click=change_source,args=("",))
     st.html("<style>.st-key-"+entry+" textarea{direction:"+("rtl;text-align:right" if direction=="fa" else "ltr;text-align:left")+"}</style>")
     source = st.text_area(t("متن مبدأ","Source text"),key=entry,height=180)
+    def detect_input():
+        guess=suggest(state.input_text)
+        if guess:
+            state.src=guess
+            reset_job()
+        state.detected=guess or "?"
+    st.button(t("تشخیص زبان متن","Detect source language"),on_click=detect_input,disabled=not source.strip())
+    if state.get("detected")=="?":
+        st.caption(t("زبان را دستی انتخاب کنید.","Select the source language manually."))
+    speech_on=st.checkbox(t("فعال‌سازی صوت آنلاین","Enable online audio"),key="speech_on")
+    if speech_on:
+        st.caption(t("با زدن دکمهٔ شنیدن، متن انتخاب‌شده برای تولید صدا به Microsoft Edge TTS فرستاده می‌شود.",
+                     "Pressing Listen sends the selected text to Microsoft Edge TTS."))
+        audio_control(st,t,source,direction,"source-full",t("شنیدن کل متن مبدأ","Listen to full source"))
+    if direction==target:
+        st.info(t("دو زبان متفاوت انتخاب کنید.","Choose two different languages."))
     with st.expander(t("واژه‌نامهٔ اختصاصی","Custom terminology")):
         terms = st.text_area(t("هر خط یک معادل، به شکل مبدأ = مقصد","One mapping per line, source = target"),
-                             key="terms_"+direction,height=90,max_chars=1200)
-    if st.button(t("ترجمه کن","Translate"),type="primary",key="translate"):
+                             key="terms_"+direction+target,height=90,max_chars=1200)
+    if st.button(t("ترجمه کن","Translate"),type="primary",key="translate",disabled=direction==target):
         state.pop("job",None)
         glossary = {}
         for line in terms.splitlines():
@@ -127,7 +154,7 @@ with work:
         items = job["items"]
         parts = job["parts"]
         def generate(i):
-            return translate(parts[i],target,job["mode"],job["glossary"],previous=parts[i-1] if i else "")
+            return translate(parts[i],target,job["mode"],job["glossary"],previous=parts[i-1] if i else "",source_lang=direction)
 
         split = st.toggle(t("نمای تطبیقی","Side by side"),value=True,key="compare")
         if len(items)<len(parts) and not job["running"]:
@@ -162,8 +189,12 @@ with work:
                 answer=result.pairs[0][1]
                 with cols[0]:
                     panel(t("مبدأ","Original"),original,direction)
+                    if speech_on:
+                        audio_control(st,t,original,direction,"source-"+uid,t("شنیدن مبدأ","Listen to source"))
                 with cols[1]:
                     panel(t("ترجمه","Translation"),answer,target,True)
+                    if speech_on:
+                        audio_control(st,t,answer,target,"translation-"+uid,t("شنیدن ترجمه","Listen to translation"))
                     if st.toggle(t("ویرایش ترجمه","Edit translation"),key=edit):
                         draft=st.text_area(t("متن ویرایش‌شده","Revised text"),answer,key="draft_"+uid)
                         if st.button(t("ذخیرهٔ ویرایش","Save edit"),key="save_"+uid,disabled=not draft.strip()):
@@ -179,6 +210,8 @@ with work:
             st.error(t("تولید بند کامل نشد. سرویس مدل و طول ورودی را بررسی کنید و ادامه را بزنید.",
                        "Passage generation stopped. Check the model service and input length, then resume."))
         if items:
+            if speech_on and len(items)==len(parts):
+                audio_control(st,t,"\n\n".join(r.pairs[0][1] for r in items),target,"translation-full",t("شنیدن کل ترجمه","Listen to full translation"))
             st.download_button(t("دریافت متن فعلی","Download current translation"),
                 "\n\n".join(r.pairs[0][1] for r in items),"translation.txt","text/plain;charset=utf-8",on_click="ignore")
             with st.expander(t("جزئیات اجرای بندهای فعلی","Current passage metrics")):
@@ -189,25 +222,25 @@ with work:
                     col.metric(label,"—" if None in values else round(sum(values),2))
 with lab:
     st.subheader(t("مقایسهٔ دو نسخهٔ پرامپت","Compare two prompt versions"))
-    st.caption(t("۳۰ آزمون در دو جهت. امتیاز معنایی و روانی را پس از خواندن پاسخ وارد کنید.",
-                 "30 bilingual cases. Review each answer to score meaning and fluency."))
+    st.caption(t("۴۲ آزمون در شش جهت. امتیاز معنایی و روانی را پس از خواندن پاسخ وارد کنید.",
+                 "42 cases across six directions. Review each answer to score meaning and fluency."))
     cases=list(csv.reader((ROOT/"cases.tsv").read_text(encoding="utf-8").splitlines(),delimiter="\t"))
-    chosen=st.selectbox(t("نمونهٔ آزمون","Test case"),range(len(cases)),format_func=lambda i: cases[i][1], key="case")
-    scope=st.checkbox(t("اجرای هر ۳۰ آزمون (۶۰ فراخوانی مدل)","Run all 30 cases (60 model calls)"))
+    chosen=st.selectbox(t("نمونهٔ آزمون","Test case"),range(len(cases)),format_func=lambda i: f"{cases[i][0]} → {cases[i][1]} · {cases[i][2]}", key="case")
+    scope=st.checkbox(t("اجرای هر ۴۲ آزمون (۸۴ فراخوانی مدل)","Run all 42 cases (84 model calls)"))
     rows=state.setdefault("runs",{})
     if st.button(t("اجرای مقایسه","Run comparison")):
         try:
             with st.status(t("در حال ارزیابی","Evaluating")) as status:
                 for i in (range(len(cases)) if scope else [chosen]):
-                    lang,src,ref,required=cases[i]
+                    lang,dest,src,ref,required=cases[i]
                     order=list(VERSIONS)
                     secrets.SystemRandom().shuffle(order)
                     pending={}
                     for alias,v in zip("AB",order):
-                        status.update(label=f"{i+1}/30 · {v}")
-                        res=translate(src,"fa" if lang=="en" else "en","text",version=v)
+                        status.update(label=f"{i+1}/{len(cases)}")
+                        res=translate(src,dest,"text",version=v,source_lang=lang)
                         out=res.pairs[0][1]
-                        pending[i,alias]=dict(model=MODEL,version=v,alias=alias,direction=lang,locked=False,source=src,reference=ref,output=out,
+                        pending[i,alias]=dict(model=MODEL,version=v,alias=alias,direction=f"{lang} → {dest}",locked=False,source=src,reference=ref,output=out,
                             seconds=round(res.seconds,2),input_tokens=res.incoming,output_tokens=res.outgoing,
                             token_check=(any(x in out for x in required.split("|")) if required else None),
                             meaning=None,fluency=None)
@@ -218,14 +251,20 @@ with lab:
                 status.update(label=t("پایان مقایسه","Comparison complete"),state="complete")
         except errors as exc:
             error(exc)
-    lang,src,ref,required=cases[chosen]
-    dest="fa" if lang=="en" else "en"
+    lang,dest,src,ref,required=cases[chosen]
     panel(t("ترجمهٔ مرجع","Reference translation"),ref,dest)
+    if state.get("speech_on"):
+        audio_control(st,t,src,lang,"lab-source",t("شنیدن نمونه","Listen to sample"))
+        audio_control(st,t,ref,dest,"lab-reference",t("شنیدن مرجع","Listen to reference"))
+        st.caption(t("تلفظ عدد، درصد و نام فایل را در نمونه‌های report_v2.csv بررسی کنید.",
+                     "Check the number, percentage and filename in the report_v2.csv samples."))
     for col,v in zip(st.columns(2),"AB"):
         with col:
             row=rows.get((chosen,v))
             if row:
                 panel(v,row["output"],dest,True)
+                if state.get("speech_on"):
+                    audio_control(st,t,row["output"],dest,"lab-"+v,t("شنیدن پاسخ","Listen to answer"))
                 st.caption(f'{row["seconds"]} s')
                 if required:
                     st.write(t("حفظ عدد یا شناسه","Number or identifier preserved"),"✓" if row["token_check"] else "✗")
@@ -244,11 +283,11 @@ with lab:
     locked=[r for r in rows.values() if r["locked"]]
     if locked:
         summary=[]
-        for lang in ("en","fa"):
+        for lang in sorted({r["direction"] for r in locked}):
             for version in VERSIONS:
                 group=[r for r in locked if r["direction"]==lang and r["version"]==version]
                 if group:
-                    summary.append({t("جهت","Direction"): "EN → FA" if lang=="en" else "FA → EN",
+                    summary.append({t("جهت","Direction"): lang.upper(),
                         t("نسخه","Version"):version,t("تعداد","Cases"):len(group),
                         **{label:round(mean(r[k] for r in group),2) for k,label in
                            [("meaning",t("دقت معنایی","Meaning")),("fluency",t("روانی","Fluency")),("seconds",t("ثانیه","Seconds"))]}})
