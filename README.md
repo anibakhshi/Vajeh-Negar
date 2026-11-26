@@ -20,7 +20,7 @@ A local English–Persian–German translation editor and bilingual dictionary b
 - Choose automatic, dictionary, or text mode. Supply custom terminology as one `source = target` mapping per line.
 - Compare, edit, regenerate and download passages. Resume an interrupted translation in the same Streamlit session.
 - Inspect token counts, elapsed time and warnings for detectable differences in numbers, percentages and identifiers.
-- Run 42 multilingual evaluation cases. Score randomized A/B responses for fidelity and fluency, reveal prompt identities after locking ratings, and export the results as CSV.
+- Run 46 multilingual evaluation cases. Score randomized A/B responses for fidelity and fluency, reveal prompt identities after locking ratings, and export the results as CSV.
 
 ## Main packages
 
@@ -77,7 +77,7 @@ Try “Revenue may fall by 12%.” Check that the translation preserves uncertai
 | `streamlit_app.py` | Editor, session state and blind evaluation |
 | `translator.py` | Prompt versions, passage splitting and model calls |
 | `quality.py` | Literal consistency checks |
-| `cases.tsv` | 42 cases across six language directions |
+| `cases.tsv` | 46 cases across six language directions |
 | `assets/` | Local fonts, font attribution and interface styles |
 | `dt_lm.py`, `dt_utility.py` | Course utility modules by Dariush Tasdighi |
 
@@ -87,3 +87,6 @@ The configuration and model-client patterns draw on Dariush Tasdighi’s teachin
 
 ## Speech and language selection
 Choose source and target independently. Detect source language suggests a supported language and remains manually editable. Swap exchanges the languages and reuses a complete translation as input. Enable online audio and press Listen to send the selected text to Microsoft Edge TTS. Listen to and download individual passages or the full text as MP3. Audio is cached per session by voice and text. Generation time appears beside each player. Translation continues locally with Ollama when speech is unavailable. In the lab, listen to the reference and A/B outputs and check numbers, percentages and names.
+
+## Listening practice and saved documents
+Enable online audio, choose a listening order and prepare the playlist. Play, pause, change speed or replay the current passage. Save the document explicitly after editing. Saved texts, first model outputs, edits, glossary and last edited passage are stored in ~/.vajehnegar/documents.sqlite3 on the Streamlit host. This library is intended for single-user local execution.

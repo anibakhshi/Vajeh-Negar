@@ -11,6 +11,8 @@ from pathlib import Path
 import httpx
 import streamlit as st
 from ollama import ResponseError
+import documents
+from player import player
 from speech import audio_control, suggest
 from translator import MODEL, VERSIONS, translate
 
@@ -93,6 +95,24 @@ with work:
         if old and len(old["items"])==len(old["parts"]):
             state.input_text="\n\n".join(r.pairs[0][1] for r in old["items"])
         reset_job()
+    with st.expander(t("اسناد محلی", "Local documents")):
+        saved=documents.choices()
+        def reopen():
+            job=documents.load(state.doc_choice)
+            state.src=job.pop("src")
+            state.dst=job.pop("dst")
+            state.input_text="\n\n".join(job["parts"])
+            state.mode=job["mode"]
+            state["terms_"+state.src+state.dst]="\n".join(f"{k} = {v}" for k,v in job["glossary"].items())
+            state.job=job
+            for key in list(state):
+                if key.startswith(("edit_","draft_")):
+                    del state[key]
+            if "last_edit" in job:
+                state[f"edit_{job['id']}_{job['last_edit']}"]=True
+        if saved:
+            st.selectbox(t("سند ذخیره‌شده","Saved document"),list(saved),format_func=saved.get,key="doc_choice")
+            st.button(t("باز کردن سند","Open document"),on_click=reopen)
     left,middle,right=st.columns([3,1,3])
     direction=left.selectbox(t("زبان مبدأ","Source language"),list(names),format_func=names.get,key="src",on_change=reset_job)
     target=right.selectbox(t("زبان مقصد","Target language"),list(names),index=1,format_func=names.get,key="dst",on_change=reset_job)
@@ -167,6 +187,7 @@ with work:
                 try:
                     with st.spinner(t("ترجمهٔ بند","Translating passage")+f" {i+1}/{len(parts)}"):
                         result=generate(i)
+                    job.setdefault("initial",[]).append(result.pairs[0][1])
                     items.append(result)
                 except errors as exc:
                     job["running"]=False
@@ -176,6 +197,8 @@ with work:
             uid=f'{job["id"]}_{i}'
             with st.container(border=True):
                 st.caption(t(f"بند {i+1} از {len(parts)}", f"Passage {i+1} of {len(parts)}"))
+                if job.get("last_edit")==i:
+                    st.caption(t("آخرین بند ویرایش‌شده","Last edited passage"))
                 edit="edit_"+uid
                 if st.button(t("ترجمهٔ مجدد","Retranslate"),key="retry_"+uid):
                     try:
@@ -198,8 +221,12 @@ with work:
                     if st.toggle(t("ویرایش ترجمه","Edit translation"),key=edit):
                         draft=st.text_area(t("متن ویرایش‌شده","Revised text"),answer,key="draft_"+uid)
                         if st.button(t("ذخیرهٔ ویرایش","Save edit"),key="save_"+uid,disabled=not draft.strip()):
+                            job["last_edit"]=i
                             result.pairs[0]=(original,draft.strip())
                             st.rerun()
+                if job.get("initial") and answer!=job["initial"][i]:
+                    with st.expander(t("اولین ترجمهٔ مدل","Original model translation")):
+                        panel(t("نسخهٔ اولیه","Initial version"),job["initial"][i],target)
                 missing,added=differences(original,answer)
                 if missing or added:
                     if missing:
@@ -210,6 +237,12 @@ with work:
             st.error(t("تولید بند کامل نشد. سرویس مدل و طول ورودی را بررسی کنید و ادامه را بزنید.",
                        "Passage generation stopped. Check the model service and input length, then resume."))
         if items:
+            if st.button(t("ذخیرهٔ سند روی این دستگاه","Save document on this device")):
+                documents.save(job,direction,target)
+                st.success(t("سند ذخیره شد.","Document saved."))
+            if speech_on:
+                with st.expander(t("تمرین شنیداری پیوسته","Continuous listening practice")):
+                    player(st,t,items,direction,target)
             if speech_on and len(items)==len(parts):
                 audio_control(st,t,"\n\n".join(r.pairs[0][1] for r in items),target,"translation-full",t("شنیدن کل ترجمه","Listen to full translation"))
             st.download_button(t("دریافت متن فعلی","Download current translation"),
@@ -222,11 +255,11 @@ with work:
                     col.metric(label,"—" if None in values else round(sum(values),2))
 with lab:
     st.subheader(t("مقایسهٔ دو نسخهٔ پرامپت","Compare two prompt versions"))
-    st.caption(t("۴۲ آزمون در شش جهت. امتیاز معنایی و روانی را پس از خواندن پاسخ وارد کنید.",
-                 "42 cases across six directions. Review each answer to score meaning and fluency."))
+    st.caption(t("۴۶ آزمون در شش جهت. امتیاز معنایی و روانی را پس از خواندن پاسخ وارد کنید.",
+                 "46 cases across six directions. Review each answer to score meaning and fluency."))
     cases=list(csv.reader((ROOT/"cases.tsv").read_text(encoding="utf-8").splitlines(),delimiter="\t"))
     chosen=st.selectbox(t("نمونهٔ آزمون","Test case"),range(len(cases)),format_func=lambda i: f"{cases[i][0]} → {cases[i][1]} · {cases[i][2]}", key="case")
-    scope=st.checkbox(t("اجرای هر ۴۲ آزمون (۸۴ فراخوانی مدل)","Run all 42 cases (84 model calls)"))
+    scope=st.checkbox(t("اجرای هر ۴۶ آزمون (۹۲ فراخوانی مدل)","Run all 46 cases (92 model calls)"))
     rows=state.setdefault("runs",{})
     if st.button(t("اجرای مقایسه","Run comparison")):
         try:
