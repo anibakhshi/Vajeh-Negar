@@ -43,15 +43,19 @@ def palette():
 
 st.html("<style>"+styles()+palette()+".stMainBlockContainer{direction:"+("rtl" if fa else "ltr")+"}</style>")
 credit_rows = [
-    ("نام دانشجو · آنیتا بخشی", "Student · Anita Bakhshi"),
-    ("نام استاد · استاد داریوش تصدیقی", "Instructor · Dariush Tasdighi"),
-    ("نام دوره · LLMOPS", "Course · LLMOPS")]
-st.html('<header class="hero"><div><h1>'+t("واژه‌نگار","VajehNegar")+'</h1><p>'+
-        t("مترجم و واژه‌نامهٔ فارسی، انگلیسی و آلمانی","Persian, English and German translation studio")+
-        '</p></div><div class="art" aria-hidden="true"><i>A</i><i>آ</i></div></header>')
-with st.sidebar.expander(t("مشخصات پروژه","Project credits")):
-    st.html('<div class="credits">'+ "".join(
-        f'<div><strong dir="rtl">{p}</strong><small dir="ltr">{e}</small></div>' for p,e in credit_rows)+'</div>')
+    ("نام دانشجو", "آنیتا بخشی", "Student", "Anita Bakhshi"),
+    ("نام استاد", "استاد داریوش تصدیقی", "Instructor", "Dariush Tasdighi"),
+    ("نام دوره", "LLMOps", "Course", "LLMOps"),
+]
+credits = "".join(
+    f'<div class="credit-row"><div lang="fa" dir="rtl"><small>{role}</small><strong>{name}</strong></div>'
+    f'<div lang="en" dir="ltr"><small>{role_en}</small><strong>{name_en}</strong></div></div>'
+    for role, name, role_en, name_en in credit_rows
+)
+st.html(f'''<header class="hero"><div class="identity">
+    <h1>{t("واژه‌نگار", "VajehNegar")}</h1><span class="wordmark">{t("VajehNegar", "واژه‌نگار")}</span>
+    <p>{t("مترجم و واژه‌نامهٔ فارسی، انگلیسی و آلمانی", "Persian, English and German translation studio")}</p>
+    </div><div class="credits">{credits}</div></header>''')
 
 
 def panel(label, value, lang, target=False):
